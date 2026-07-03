@@ -14,6 +14,20 @@ A log of the notable decisions made during this project, and the reasoning behin
 
 **React Query for server state.** Eliminates hand-rolled loading/error/caching logic; `queryKey` per filter combination gives request deduplication and caching for free; `invalidateQueries` keeps the table consistent after mutations.
 
+**ESLint over Oxlint.** Mature React hooks rules (missing-dependency detection catches real bugs) and the toolchain any reviewer recognizes. Oxlint is promising but its rule coverage is still a subset.
+
+## Authentication
+
+**Mock auth per HR's clarification, implemented as a real JWT flow.** "Mock" is interpreted as *one hardcoded user from environment config* — but the token mechanics (signed JWT, 8h expiry, Bearer middleware, 401 handling) are production-shaped. This keeps the frontend integration realistic and makes the upgrade path (a user table with bcrypt-hashed passwords, refresh tokens, role checks) a data change rather than an architecture change.
+
+**Credentials and JWT secret in env config, never in code.** Demo values are set in docker-compose for reviewer convenience; a secrets manager would hold them in production.
+
+**Token in localStorage — a conscious assessment-scope choice.** Simple, and survives page refresh. The production-grade alternative is an httpOnly cookie (immune to XSS reading the token) with CSRF protection; documented as the upgrade path.
+
+**Axios interceptors centralize auth.** A request interceptor attaches the Bearer token so no individual API call knows about tokens; a response interceptor catches 401s, clears the session, and returns to login — with a guard so a failed *login attempt* shows an inline error instead of reloading the page.
+
+**Demo credentials shown on the login screen.** Deliberate friction-removal for the reviewer; would never ship in production.
+
 ## Data Modeling
 
 **`Decimal(12,2)` for salary — never Float.** Floating point cannot represent most decimal fractions exactly; money arithmetic in Float produces rounding errors. Decimal is exact.
@@ -46,7 +60,7 @@ A log of the notable decisions made during this project, and the reasoning behin
 
 **`$queryRawUnsafe` justification.** The interpolated pieces are (a) a CASE expression generated from the static FX config and (b) a group column constrained to the TypeScript union `"country" | "department"`. No user input ever reaches the SQL string. Prisma's typed API can't express window functions, hence raw SQL.
 
-**BigInt handling.** MySQL `COUNT(*)` arrives as BigInt through Prisma raw queries, and `JSON.stringify` throws on BigInt — all aggregates are converted with `Number()` at the repository boundary.
+**BigInt handling.** MySQL `COUNT(*)` arrives as BigInt through Prisma raw queries, and `JSON.stringify` throws on BigInt — all aggregates are converted with `Number()` at the repository boundary. (This surfaced as a real runtime bug during development — `bigint` used as a value instead of a type — and the fix clarified the type-erasure boundary.)
 
 ## Frontend
 
@@ -58,11 +72,13 @@ A log of the notable decisions made during this project, and the reasoning behin
 
 **Form modal remounted per employee (`key` prop).** Mantine's `useForm` reads `initialValues` only on mount; keying by employee id guarantees the edit form always shows the selected row's data.
 
-**State-based navigation instead of react-router.** Two pages don't justify a routing dependency. First thing to add if the app grows.
+**State-based navigation instead of react-router.** Two pages (plus an auth gate) don't justify a routing dependency. First thing to add if the app grows.
 
 ## Testing
 
-**Real test database over mocks.** Mocked repositories would pass even if the actual SQL were wrong. Tests run against `salary_test` (schema pushed automatically in global setup), verifying real query behavior — pagination math, combined filters, window-function medians.
+**Real test database over mocks.** Mocked repositories would pass even if the actual SQL were wrong. Tests run against `salary_test` (schema pushed automatically in global setup), verifying real query behavior — pagination math, combined filters, window-function medians, and the full auth flow.
+
+**Auth in tests via a shared helper.** One login per run, cached Bearer header applied to every protected request — plus dedicated tests proving protected routes reject missing and invalid tokens.
 
 **Hand-computable fixtures.** Test data is designed so expected values can be checked on paper: salaries of `1000 * i` make sort order self-evident; the analytics fixture (3 US salaries 50k/100k/150k, 4 Indian at 1M INR) has pen-and-paper averages and medians.
 
@@ -70,10 +86,23 @@ A log of the notable decisions made during this project, and the reasoning behin
 
 **Batched seeding (1,000 rows per `createMany`).** 10 bulk inserts instead of 10,000 single inserts: seconds instead of minutes.
 
+## Deployment
+
+**Docker Compose per HR's clarification** ("Dockerized local setup with clear, comprehensive run instructions"). One command starts MySQL, the API, and the UI — zero manual setup for the reviewer.
+
+**Healthcheck-gated startup ordering.** The backend waits on MySQL's healthcheck (`condition: service_healthy`), not just container start — avoiding the classic connect-before-ready race.
+
+**Auto-migrate-and-seed on backend boot.** `prisma migrate deploy` + the deterministic seed run on every start, so a fresh clone reaches a working, populated app with no steps. Trade-off: data resets to the seeded 10k on each restart — acceptable (arguably desirable) for an assessment; a production system would seed once and never on boot.
+
+**Frontend served by nginx from a multi-stage build.** Production Vite build as static files — small image, no Node process in the serving path.
+
+**Tests run on the host, not in Docker.** They need dev dependencies and an isolated DB; the compose MySQL init script creates `salary_test` so host-run tests work against the containerized database too.
+
 ## Deliberately Excluded (summary — full reasoning in requirements.md)
 
-- Authentication & roles — single-persona exercise; first production addition.
+- Multi-user auth, roles, registration — single mock HR Manager per HR's clarification; user table + bcrypt is the production path.
 - Payroll processing — managing salary data, not executing payroll.
 - Live FX rates — see above.
 - Bulk Excel import/export — top roadmap item given the Excel pain point; CRUD + seeding demonstrates the data model.
 - Salary change audit history — valuable for compliance; deferred to keep schema and UI focused.
+- Public deployment — HR confirmed local Docker setup is acceptable.

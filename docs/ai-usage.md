@@ -27,8 +27,9 @@ itself was a useful check that I understood the code.
 - **Prompt:** "Break down this take-home assessment; help me define scope,
   architecture, and what to deliberately leave out, with reasoning."
 - **Outcome:** requirements.md; layered backend design (routes → services →
-  repositories); explicit out-of-scope list (auth, payroll, live FX, Excel
-  import, audit history).
+  repositories); explicit out-of-scope list. Also drafted clarifying questions
+  for HR (stack confirmation, auth scope, deployment expectations) — HR's
+  answers later shaped features 11–13 below.
 
 ### 2. Project scaffold
 - **Prompt:** "Scaffold an Express + TypeScript + Prisma backend on Node 22."
@@ -99,8 +100,42 @@ itself was a useful check that I understood the code.
   highest / India lowest average in USD) and verified histogram buckets sum to
   total headcount.
 
-### 11. Documentation
-- **Prompt:** "Help me write architecture.md and decisions.md collecting the
-  trade-offs made during the build."
+### 11. Backend authentication (after HR clarification)
+- **Context:** HR confirmed "a single authenticated HR Manager role is
+  perfectly sufficient... simple mock authentication."
+- **Prompt:** "Mock JWT auth: login endpoint with a single env-configured HR
+  Manager user, Bearer-token middleware protecting all employee and analytics
+  routes; update the existing 26 tests for auth and add auth tests."
+- **My review:** interpreted "mock" as one hardcoded user but a *real* token
+  flow (signed JWT, expiry, 401 handling) so the design has a clean production
+  upgrade path; verified every previously passing test now authenticates via a
+  shared login helper, plus new tests for wrong credentials and missing/invalid
+  tokens (31 total).
+
+### 12. Frontend login + session handling
+- **Prompt:** "Login page, auth context with localStorage persistence, axios
+  request interceptor attaching the token, response interceptor auto-logging
+  out on 401."
+- **My review:** caught the interceptor edge case where a failed *login*
+  attempt would trigger the 401-reload path instead of showing an inline
+  error — guarded the login route in the interceptor. Verified session
+  survives refresh and the forced-expiry path (tampered token → back to
+  login).
+
+### 13. Docker packaging (after HR clarification)
+- **Context:** HR confirmed a Dockerized local setup is acceptable — no public
+  URL needed.
+- **Prompt:** "Docker Compose for the full stack: MySQL with healthcheck,
+  backend that migrates and seeds on start, frontend as an nginx-served
+  production build — one-command startup."
+- **My review:** verified the healthcheck gating (backend waits for MySQL to
+  actually accept connections), the internal DNS hostname (`mysql`, not
+  `localhost`), that the test database is created by the init script, and the
+  full fresh-clone flow: `docker compose up --build` → login → all features
+  working.
+
+### 14. Documentation
+- **Prompt:** "Help me write and keep architecture.md and decisions.md updated
+  as the build evolved (including the auth and Docker additions)."
 - **Outcome:** docs in this folder; all content reflects decisions actually
   made (and in several cases debugged) during development.
