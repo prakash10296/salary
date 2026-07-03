@@ -2,10 +2,14 @@ import { useState } from "react";
 import {
     Table, TextInput, Select, Group, Pagination, Title, Paper,
     Text, Loader, Center, Stack, Badge, UnstyledButton,
+    Button, Modal,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
-import { useQuery } from "@tanstack/react-query";
-import { employeeApi, EmployeeListParams } from "../api/client";
+import { notifications } from "@mantine/notifications";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { employeeApi, type Employee } from "../api/client";
+import type { EmployeeListParams } from "../api/client";
+import { EmployeeFormModal } from "../components/EmployeeFormModal";
 
 type SortField = NonNullable<EmployeeListParams["sortBy"]>;
 
@@ -17,6 +21,21 @@ export function EmployeeListPage() {
     const [department, setDepartment] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<SortField>("name");
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+    const [formOpen, setFormOpen] = useState(false);
+    const [editing, setEditing] = useState<Employee | null>(null);
+    const [deleting, setDeleting] = useState<Employee | null>(null);
+    const queryClient = useQueryClient();
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => employeeApi.remove(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+            notifications.show({ color: "green", message: "Employee deleted" });
+            setDeleting(null);
+        },
+        onError: () => notifications.show({ color: "red", message: "Delete failed" }),
+    });
 
     const params: EmployeeListParams = {
         page,
@@ -54,7 +73,13 @@ export function EmployeeListPage() {
 
     return (
         <Stack>
-            <Title order={2}>Employees</Title>
+            {/* <Title order={2}>Employees</Title> */}
+            <Group justify="space-between">
+                <Title order={2}>Employees</Title>
+                <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+                    Add Employee
+                </Button>
+            </Group>
 
             <Paper p="md" withBorder>
                 <Group>
@@ -104,6 +129,7 @@ export function EmployeeListPage() {
                                             Joined{sortIndicator("joiningDate")}
                                         </UnstyledButton>
                                     </Table.Th>
+                                    <Table.Th>Actions</Table.Th>
                                 </Table.Tr>
                             </Table.Thead>
                             <Table.Tbody>
@@ -118,6 +144,18 @@ export function EmployeeListPage() {
                                             {Number(emp.salary).toLocaleString()} {emp.currency}
                                         </Table.Td>
                                         <Table.Td>{new Date(emp.joiningDate).toLocaleDateString()}</Table.Td>
+                                        <Table.Td>
+                                            <Group gap="xs">
+                                                <Button size="compact-xs" variant="light"
+                                                    onClick={() => { setEditing(emp); setFormOpen(true); }}>
+                                                    Edit
+                                                </Button>
+                                                <Button size="compact-xs" variant="light" color="red"
+                                                    onClick={() => setDeleting(emp)}>
+                                                    Delete
+                                                </Button>
+                                            </Group>
+                                        </Table.Td>
                                     </Table.Tr>
                                 ))}
                             </Table.Tbody>
@@ -128,6 +166,29 @@ export function EmployeeListPage() {
                     </Center>
                 </>
             )}
+            <EmployeeFormModal
+                key={editing?.id ?? "new"} // remount so the form picks up fresh initial values
+                opened={formOpen}
+                onClose={() => setFormOpen(false)}
+                employee={editing}
+                countries={options?.countries ?? []}
+                departments={options?.departments ?? []}
+            />
+
+            <Modal opened={deleting !== null} onClose={() => setDeleting(null)} title="Confirm Delete">
+                <Stack>
+                    <Text>
+                        Delete <b>{deleting?.name}</b> ({deleting?.email})? This cannot be undone.
+                    </Text>
+                    <Group justify="flex-end">
+                        <Button variant="default" onClick={() => setDeleting(null)}>Cancel</Button>
+                        <Button color="red" loading={deleteMutation.isPending}
+                            onClick={() => deleting && deleteMutation.mutate(deleting.id)}>
+                            Delete
+                        </Button>
+                    </Group>
+                </Stack>
+            </Modal>
         </Stack>
     );
 }

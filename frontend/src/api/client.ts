@@ -32,6 +32,17 @@ export interface EmployeeListParams {
     sortOrder?: "asc" | "desc";
 }
 
+export interface EmployeeFormData {
+    name: string;
+    email: string;
+    country: string;
+    department: string;
+    jobTitle: string;
+    salary: number;
+    currency: string;
+    joiningDate: string; // yyyy-mm-dd
+}
+
 export const employeeApi = {
     list: (params: EmployeeListParams) =>
         api.get<EmployeeListResponse>("/employees", { params }).then((r) => r.data),
@@ -40,4 +51,14 @@ export const employeeApi = {
         api
             .get<{ countries: string[]; departments: string[] }>("/employees/filter-options")
             .then((r) => r.data),
+
+    get: (id: number) => api.get<Employee>(`/employees/${id}`).then((r) => r.data),
+
+    create: (data: EmployeeFormData) =>
+        api.post<Employee>("/employees", data).then((r) => r.data),
+
+    update: (id: number, data: Partial<EmployeeFormData>) =>
+        api.put<Employee>(`/employees/${id}`, data).then((r) => r.data),
+
+    remove: (id: number) => api.delete(`/employees/${id}`),
 };
