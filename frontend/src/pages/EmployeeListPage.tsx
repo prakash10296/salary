@@ -31,6 +31,7 @@ export function EmployeeListPage() {
         mutationFn: (id: number) => employeeApi.remove(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["employees"] });
+            queryClient.invalidateQueries({ queryKey: ["analytics-summary"] });
             notifications.show({ color: "green", message: "Employee deleted" });
             setDeleting(null);
         },

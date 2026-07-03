@@ -47,6 +47,7 @@ export function EmployeeFormModal({ opened, onClose, employee, countries, depart
             isEdit ? employeeApi.update(employee.id, values) : employeeApi.create(values),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["employees"] });
+            queryClient.invalidateQueries({ queryKey: ["analytics-summary"] });
             notifications.show({
                 color: "green",
                 message: isEdit ? "Employee updated" : "Employee created",
