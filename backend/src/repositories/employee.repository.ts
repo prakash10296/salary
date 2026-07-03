@@ -1,6 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
-import { ListEmployeesQuery } from "../validators/employee.validators";
+import {
+    ListEmployeesQuery,
+    CreateEmployeeInput,
+    UpdateEmployeeInput,
+} from "../validators/employee.validators";
 
 function buildWhere(query: ListEmployeesQuery): Prisma.EmployeeWhereInput {
     const where: Prisma.EmployeeWhereInput = {};
@@ -52,5 +56,25 @@ export const employeeRepository = {
             countries: countries.map((c) => c.country),
             departments: departments.map((d) => d.department),
         };
+    },
+
+    async findById(id: number) {
+        return prisma.employee.findUnique({ where: { id } });
+    },
+
+    async findByEmail(email: string) {
+        return prisma.employee.findUnique({ where: { email } });
+    },
+
+    async create(data: CreateEmployeeInput) {
+        return prisma.employee.create({ data });
+    },
+
+    async update(id: number, data: UpdateEmployeeInput) {
+        return prisma.employee.update({ where: { id }, data });
+    },
+
+    async delete(id: number) {
+        return prisma.employee.delete({ where: { id } });
     },
 };
