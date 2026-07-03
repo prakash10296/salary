@@ -74,6 +74,8 @@ A log of the notable decisions made during this project, and the reasoning behin
 
 **State-based navigation instead of react-router.** Two pages (plus an auth gate) don't justify a routing dependency. First thing to add if the app grows.
 
+**Production build as a type-check gate.** Vite's dev server only transpiles — it does not type-check. The production build (`tsc -b && vite build`) enforces types strictly, and it caught a real bug the dev server never showed: a Recharts `Tooltip formatter` callback typed as `value: number` when the library supplies `ValueType | undefined`. Fix: infer the parameter type and convert defensively (`Number(value ?? 0)`). Lesson applied: run `npm run build` locally before packaging — dev mode passing is not evidence the types are sound.
+
 ## Testing
 
 **Real test database over mocks.** Mocked repositories would pass even if the actual SQL were wrong. Tests run against `salary_test` (schema pushed automatically in global setup), verifying real query behavior — pagination math, combined filters, window-function medians, and the full auth flow.

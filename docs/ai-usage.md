@@ -133,6 +133,14 @@ itself was a useful check that I understood the code.
   `localhost`), that the test database is created by the init script, and the
   full fresh-clone flow: `docker compose up --build` → login → all features
   working.
+- **Bug the build caught:** the frontend production build failed on a
+  TypeScript error in the Recharts `Tooltip formatter` — the callback declared
+  `value: number`, but Recharts types it as `ValueType | undefined`. The dev
+  server never surfaced this because Vite only transpiles in dev mode; the
+  production build runs `tsc -b` and enforces types strictly. Fixed by letting
+  TypeScript infer the parameter and converting with `Number(value ?? 0)` —
+  which also handles the undefined case at runtime instead of pretending it
+  can't happen. A useful reminder that dev mode is not a type-check.
 
 ### 14. Documentation
 - **Prompt:** "Help me write and keep architecture.md and decisions.md updated
