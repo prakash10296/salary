@@ -12,3 +12,9 @@ tested by me before committing. Key prompts and decisions are logged below.
   architecture, and what to deliberately leave out."
 - Outcome: requirements.md, layered backend architecture (routes → services →
   repositories), decision to pin Prisma 6 for stable tooling.
+
+### Seed script
+- Prompt: "Write a Prisma seed script for 10,000 realistic employees across
+  countries/currencies with batched inserts."
+- My review: verified determinism (faker.seed), batching performance, and
+  email uniqueness at 10k scale; spot-checked data in Prisma Studio.
