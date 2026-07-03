@@ -23,6 +23,7 @@ export function EmployeeListPage() {
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
     const [formOpen, setFormOpen] = useState(false);
+    const [formKey, setFormKey] = useState(0);
     const [editing, setEditing] = useState<Employee | null>(null);
     const [deleting, setDeleting] = useState<Employee | null>(null);
     const queryClient = useQueryClient();
@@ -77,7 +78,7 @@ export function EmployeeListPage() {
             {/* <Title order={2}>Employees</Title> */}
             <Group justify="space-between">
                 <Title order={2}>Employees</Title>
-                <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+                <Button onClick={() => { setEditing(null); setFormKey((k) => k + 1); setFormOpen(true); }}>
                     Add Employee
                 </Button>
             </Group>
@@ -148,7 +149,7 @@ export function EmployeeListPage() {
                                         <Table.Td>
                                             <Group gap="xs">
                                                 <Button size="compact-xs" variant="light"
-                                                    onClick={() => { setEditing(emp); setFormOpen(true); }}>
+                                                    onClick={() => { setEditing(emp); setFormKey((k) => k + 1); setFormOpen(true); }}>
                                                     Edit
                                                 </Button>
                                                 <Button size="compact-xs" variant="light" color="red"
@@ -168,7 +169,7 @@ export function EmployeeListPage() {
                 </>
             )}
             <EmployeeFormModal
-                key={editing?.id ?? "new"} // remount so the form picks up fresh initial values
+                key={formKey} // remount on every open so the form picks up fresh initial values
                 opened={formOpen}
                 onClose={() => setFormOpen(false)}
                 employee={editing}
