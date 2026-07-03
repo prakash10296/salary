@@ -2,6 +2,9 @@ import { describe, it, expect, beforeAll } from "vitest";
 import request from "supertest";
 import { app } from "../src/index";
 import { prisma } from "../src/lib/prisma";
+import { getAuthHeader } from "./helpers";
+
+let auth: string;
 
 // Known dataset with hand-computable answers:
 // US:    salaries 50k, 100k, 150k USD → avg 100k, median 100k
@@ -9,6 +12,7 @@ import { prisma } from "../src/lib/prisma";
 const base = { department: "Engineering", jobTitle: "Engineer", joiningDate: new Date("2022-01-01") };
 
 beforeAll(async () => {
+    auth = await getAuthHeader();
     await prisma.employee.deleteMany();
     await prisma.employee.createMany({
         data: [
@@ -25,13 +29,13 @@ beforeAll(async () => {
 
 describe("GET /api/analytics/summary", () => {
     it("returns org totals", async () => {
-        const res = await request(app).get("/api/analytics/summary");
+        const res = await request(app).get("/api/analytics/summary").set("Authorization", auth);
         expect(res.status).toBe(200);
         expect(res.body.totals.totalEmployees).toBe(7);
     });
 
     it("computes average and median by country in USD", async () => {
-        const res = await request(app).get("/api/analytics/summary");
+        const res = await request(app).get("/api/analytics/summary").set("Authorization", auth);
         const us = res.body.byCountry.find((c: any) => c.group === "United States");
         const india = res.body.byCountry.find((c: any) => c.group === "India");
 
@@ -45,13 +49,13 @@ describe("GET /api/analytics/summary", () => {
     });
 
     it("groups by department across currencies", async () => {
-        const res = await request(app).get("/api/analytics/summary");
+        const res = await request(app).get("/api/analytics/summary").set("Authorization", auth);
         const eng = res.body.byDepartment.find((d: any) => d.group === "Engineering");
         expect(eng.headcount).toBe(5); // 2 US + 3 India
     });
 
     it("returns histogram buckets that sum to total employees", async () => {
-        const res = await request(app).get("/api/analytics/summary");
+        const res = await request(app).get("/api/analytics/summary").set("Authorization", auth);
         const sum = res.body.histogram.reduce((acc: number, b: any) => acc + b.count, 0);
         expect(sum).toBe(7);
     });
