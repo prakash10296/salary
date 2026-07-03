@@ -1,12 +1,17 @@
 import { useState } from "react";
-import { AppShell, Title, Container, Group, Button } from "@mantine/core";
+import { AppShell, Title, Container, Group, Button, Text } from "@mantine/core";
 import { EmployeeListPage } from "./pages/EmployeeListPage";
 import { InsightsPage } from "./pages/InsightsPage";
+import { LoginPage } from "./pages/LoginPage";
+import { useAuth } from "./auth/useAuth";
 
 type Page = "employees" | "insights";
 
 export default function App() {
+  const { token, email, logout } = useAuth();
   const [page, setPage] = useState<Page>("employees");
+
+  if (!token) return <LoginPage />;
 
   return (
     <AppShell header={{ height: 60 }} padding="md">
@@ -26,6 +31,8 @@ export default function App() {
             >
               Insights
             </Button>
+            <Text size="sm" c="dimmed">{email}</Text>
+            <Button variant="default" onClick={logout}>Logout</Button>
           </Group>
         </Group>
       </AppShell.Header>

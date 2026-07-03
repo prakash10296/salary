@@ -2,6 +2,29 @@ import axios from "axios";
 
 export const api = axios.create({ baseURL: "http://localhost:3001/api" });
 
+const TOKEN_KEY = "salary_app_token";
+
+// Attach the token to every request
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+});
+
+// Expired/invalid token → clear session and return to login
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const isLoginCall = error.config?.url?.includes("/auth/login");
+        if (error.response?.status === 401 && !isLoginCall) {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem("salary_app_email");
+            window.location.reload(); // AuthProvider re-initializes → login screen
+        }
+        return Promise.reject(error);
+    }
+);
+
 export interface Employee {
     id: number;
     name: string;

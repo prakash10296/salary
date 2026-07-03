@@ -7,6 +7,7 @@ import App from "./App";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/dates/styles.css";
+import { AuthProvider } from "./auth/AuthContext";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -15,10 +16,12 @@ const queryClient = new QueryClient({
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <MantineProvider>
-        <Notifications position="top-right" />
-        <App />
-      </MantineProvider>
+      <AuthProvider>
+        <MantineProvider>
+          <Notifications position="top-right" />
+          <App />
+        </MantineProvider>
+      </AuthProvider>
     </QueryClientProvider>
   </React.StrictMode>
 );
