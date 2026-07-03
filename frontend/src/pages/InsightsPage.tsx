@@ -26,7 +26,7 @@ function SalaryBarChart({ data }: { data: GroupStats[] }) {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="group" tick={{ fontSize: 12 }} interval={0} angle={-20} textAnchor="end" height={70} />
                 <YAxis tickFormatter={(v) => `$${v / 1000}k`} />
-                <Tooltip formatter={(value: number) => fmtUsd(value)} />
+                <Tooltip formatter={(value) => fmtUsd(Number(value ?? 0))} />
                 <Bar dataKey="avgUsd" name="Avg (USD)" fill="#4c6ef5" />
                 <Bar dataKey="medianUsd" name="Median (USD)" fill="#82c91e" />
             </BarChart>
