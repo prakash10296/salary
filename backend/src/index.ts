@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { employeeRouter } from "./routes/employee.routes";
+import { analyticsRouter } from "./routes/analytics.routes";
 
 export const app = express();
 
@@ -9,6 +10,7 @@ app.use(express.json());
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/api/employees", employeeRouter);
+app.use("/api/analytics", analyticsRouter);
 
 // Central error handler — routes stay clean, errors get one exit point
 app.use(
