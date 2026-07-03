@@ -35,6 +35,30 @@ organization pays people.
 
 ## Getting Started
 
+### Option 1 — Docker (recommended, one command)
+
+Prerequisite: Docker Desktop.
+
+```bash
+docker compose up --build
+```
+
+Wait for the seed to finish (`Inserted 10000 / 10000` in the logs), then open:
+
+- **App:** http://localhost:5173
+- **Login:** `hr@acme.com` / `hr789`
+- API runs on http://localhost:3001 (health check: `/health`)
+
+Notes:
+- First build takes a few minutes; subsequent starts are fast.
+- The database is re-seeded deterministically on each backend start
+  (same 10,000 employees every time).
+
+### Option 2 — Manual setup
+
+<details>
+<summary>Run backend and frontend directly on your machine</summary>
+
 ### Prerequisites
 
 - Node.js 22+ (`nvm use` picks it up from `.nvmrc`)
@@ -75,3 +99,20 @@ npm run dev                # UI on http://localhost:5173
 cd backend
 npm test                   # 26 integration tests against salary_test
 ```
+
+</details>
+
+### Running tests
+
+Tests run on your machine (not in Docker) against `salary_test`:
+
+```bash
+cd backend
+npm install
+npm test        # 31 integration tests
+```
+
+If using the Docker MySQL, the test database is created automatically
+and `.env` should contain:
+`DATABASE_URL="mysql://root:password@localhost:3306/salary"`
+plus the JWT_SECRET / HR_EMAIL / HR_PASSWORD values from `.env.example`.
