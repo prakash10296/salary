@@ -43,6 +43,26 @@ export interface EmployeeFormData {
     joiningDate: string; // yyyy-mm-dd
 }
 
+export interface GroupStats {
+    group: string;
+    headcount: number;
+    avgUsd: number;
+    medianUsd: number;
+    minUsd: number;
+    maxUsd: number;
+}
+
+export interface AnalyticsSummary {
+    totals: { totalEmployees: number; avgSalaryUsd: number };
+    byCountry: GroupStats[];
+    byDepartment: GroupStats[];
+    histogram: { range: string; count: number }[];
+}
+
+export const analyticsApi = {
+    summary: () => api.get<AnalyticsSummary>("/analytics/summary").then((r) => r.data),
+};
+
 export const employeeApi = {
     list: (params: EmployeeListParams) =>
         api.get<EmployeeListResponse>("/employees", { params }).then((r) => r.data),
