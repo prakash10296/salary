@@ -98,21 +98,45 @@ npm run dev                # UI on http://localhost:5173
 
 ```bash
 cd backend
-npm test                   # 26 integration tests against salary_test
+npm test                   # 31 integration tests against salary_test
 ```
 
-
-### Running tests
-
-Tests run on your machine (not in Docker) against `salary_test`:
-
-```bash
-cd backend
-npm install
-npm test        # 31 integration tests
-```
 
 If using the Docker MySQL, the test database is created automatically
 and `.env` should contain:
 `DATABASE_URL="mysql://root:password@localhost:3307/salary"`
 plus the JWT_SECRET / HR_EMAIL / HR_PASSWORD values from `.env.example`.
+
+## Screenshots
+
+Login Screen:
+
+![Login](images/login.png)
+
+Login Screen (with validation):
+
+![Login With Validation](images/login-with-validation.png)
+
+Employee List Screen:
+
+![Employee List](images/employee-list.png)
+
+Employee List Screen (with Filter):
+
+![Employee List With Filter](images/employee-list-with-filter.png)
+
+Employee Add Screen:
+
+![Employee Add](images/employee-add.png)
+
+Employee Edit Screen:
+
+![Employee Edit](images/employee-edit.png)
+
+Employee Delete Screen:
+
+![Employee Delete](images/employee-delete.png)
+
+Insights Screen:
+
+![Insights](images/insights.png)
