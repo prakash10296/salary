@@ -58,8 +58,7 @@ Notes:
 
 ### Option 2 — Manual setup
 
-<details>
-<summary>Run backend and frontend directly on your machine</summary>
+Run backend and frontend directly on your machine
 
 ### Prerequisites
 
@@ -102,7 +101,6 @@ cd backend
 npm test                   # 26 integration tests against salary_test
 ```
 
-</details>
 
 ### Running tests
 
