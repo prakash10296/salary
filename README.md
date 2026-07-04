@@ -53,6 +53,8 @@ Notes:
 - First build takes a few minutes; subsequent starts are fast.
 - The database is re-seeded deterministically on each backend start
   (same 10,000 employees every time).
+- The containerized MySQL is exposed on host port 3307 to avoid clashing
+  with any local MySQL installation.
 
 ### Option 2 — Manual setup
 
@@ -114,5 +116,5 @@ npm test        # 31 integration tests
 
 If using the Docker MySQL, the test database is created automatically
 and `.env` should contain:
-`DATABASE_URL="mysql://root:password@localhost:3306/salary"`
+`DATABASE_URL="mysql://root:password@localhost:3307/salary"`
 plus the JWT_SECRET / HR_EMAIL / HR_PASSWORD values from `.env.example`.

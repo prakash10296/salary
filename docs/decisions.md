@@ -100,6 +100,12 @@ A log of the notable decisions made during this project, and the reasoning behin
 
 **Tests run on the host, not in Docker.** They need dev dependencies and an isolated DB; the compose MySQL init script creates `salary_test` so host-run tests work against the containerized database too.
 
+**MySQL published on host port 3307, not 3306.** The backend reaches MySQL over
+Docker's internal network (`mysql:3306`), so the published port exists only for
+host-side access (DB tools, host-run tests). Mapping to 3307 avoids colliding
+with a local MySQL installation — on the developer's machine and on any
+reviewer's machine alike.
+
 ## Deliberately Excluded (summary — full reasoning in requirements.md)
 
 - Multi-user auth, roles, registration — single mock HR Manager per HR's clarification; user table + bcrypt is the production path.
